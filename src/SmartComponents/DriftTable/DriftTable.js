@@ -40,7 +40,7 @@ class DriftTable extends Component {
         let td = [];
 
         td.push(<td>{ facts.name }</td>);
-        td.push(<td>{ facts.status }</td>);
+        td.push(<td className='fact-state'>{ facts.status }</td>);
 
         for (let i = 0; i < metadata.length; i += 1) {
             td.push(
@@ -79,7 +79,7 @@ class DriftTable extends Component {
                 <PageHeader>
                     <PageHeaderTitle title='System Comparison'/>
                 </PageHeader>
-                <Main>
+                <Main className="drift">
                     <Card className='pf-t-light  pf-m-opaque-100'>
                         <CardBody>
                             <div>
