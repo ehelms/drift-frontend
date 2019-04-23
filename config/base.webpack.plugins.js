@@ -44,7 +44,12 @@ plugins.push(SourceMapsPlugin);
  * Cleans distribution folder.
  * @type {[type]}
  */
-const CleanWebpackPlugin = new (require('clean-webpack-plugin'))([ 'dist' ]);
+const CleanWebpackPlugin = new (require('clean-webpack-plugin'))(
+  [ 'dist' ],
+  {
+    root: path.resolve(__dirname, '../')
+  }
+);
 plugins.push(CleanWebpackPlugin);
 
 /**
@@ -84,22 +89,14 @@ const CopyFilesWebpackPlugin = new (require('copy-webpack-plugin'))([
 plugins.push(CopyFilesWebpackPlugin);
 
 /**
- * Replaces any @@insights in the html files with config.insightsDeployment value.
- * This handles the path being either insights or insightsbeta in the esi:include.
+ * Replaces any @@env in the html files with config.deploymentEnv value.
+ * This handles the path being either / or /beta in the esi:include.
  */
 const HtmlReplaceWebpackPlugin = new(require('html-replace-webpack-plugin'))([{
     pattern: '@@env',
     replacement: config.deploymentEnv
 }]);
 plugins.push(HtmlReplaceWebpackPlugin);
-
-/**
- * Replaces any instance of RELEASE in js files with config.insightsDeployment value.
- */
-const Release = new webpack.DefinePlugin({
-    RELEASE: JSON.stringify(config.deploymentEnv)
-});
-plugins.push(Release);
 
 /**
  * HMR
