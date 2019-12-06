@@ -14,6 +14,10 @@ import CreateBaselineModal from './CreateBaselineModal/CreateBaselineModal';
 export class BaselinesPage extends Component {
     constructor(props) {
         super(props);
+
+        this.state = {
+            modalOpened: false
+        };
     }
 
     async componentDidMount() {
@@ -38,11 +42,17 @@ export class BaselinesPage extends Component {
         );
     }
 
+    toggleModal = () => {
+        const { modalOpened } = this.state;
+
+        this.setState({ modalOpened: !modalOpened });
+    }
+
     renderTable() {
         return (
             <CardBody>
                 <div>
-                    <BaselinesTable kebab={ true } createButton={ true } exportButton={ true } hasSelect={ true }/>
+                    <BaselinesTable kebab={ true } createButton={ true } exportButton={ true } hasSelect={ true } toggleModal={ this.toggleModal }/>
                 </div>
             </CardBody>
         );
@@ -50,11 +60,12 @@ export class BaselinesPage extends Component {
 
     render() {
         const { emptyState, baselineListLoading } = this.props;
+        const { modalOpened } = this.state;
 
         /*eslint-disable camelcase*/
         return (
             <React.Fragment>
-                <CreateBaselineModal />
+                <CreateBaselineModal modalOpened={ modalOpened } toggleModal={ this.toggleModal }/>
                 <PageHeader>
                     <PageHeaderTitle title='Baselines'/>
                 </PageHeader>

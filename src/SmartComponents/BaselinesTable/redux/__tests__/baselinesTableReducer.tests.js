@@ -10,7 +10,6 @@ describe('baselines table reducer', () => {
             baselineDeleteLoading: false,
             fullBaselineListData: [],
             selectedBaselineIds: [],
-            IdToDelete: '',
             emptyState: false
         });
     });
@@ -160,6 +159,26 @@ describe('baselines table reducer', () => {
         });
     });
 
+    it('should handle SELECT_BASELINE empty', () => {
+        expect(
+            baselinesTableReducer({
+                fullBaselineListData: baselinesFixtures.baselinesListPayloadResults,
+                baselineTableData: baselinesFixtures.baselineTableDataRows,
+                selectedBaselineIds: [ '1234', 'abcd' ]
+            }, {
+                type: `${types.SELECT_BASELINE}`,
+                payload: {
+                    ids: [],
+                    isSelected: true
+                }
+            })
+        ).toEqual({
+            fullBaselineListData: baselinesFixtures.baselinesListPayloadResults,
+            baselineTableData: baselinesFixtures.baselineTableDataRows,
+            selectedBaselineIds: []
+        });
+    });
+
     it('should handle SET_SELECTED_BASELINES', () => {
         expect(
             baselinesTableReducer({
@@ -173,6 +192,18 @@ describe('baselines table reducer', () => {
             fullBaselineListData: baselinesFixtures.baselinesListPayloadResults,
             baselineTableData: baselinesFixtures.baselineTableDataTwoSelected(),
             selectedBaselineIds: [ '1234', 'abcd' ]
+        });
+    });
+
+    it('should handle CLEAR_SELECTED_BASELINES', () => {
+        expect(
+            baselinesTableReducer({
+                selectedBaselineIds: [ '1234', 'abcd' ]
+            }, {
+                type: `${types.CLEAR_SELECTED_BASELINES}`
+            })
+        ).toEqual({
+            selectedBaselineIds: []
         });
     });
 });

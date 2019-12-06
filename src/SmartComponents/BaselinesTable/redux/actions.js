@@ -15,13 +15,6 @@ function selectBaseline(ids, isSelected) {
     };
 }
 
-function selectOneBaseline(id, isSelected) {
-    return {
-        type: types.SELECT_ONE_BASELINE,
-        payload: { id, isSelected }
-    };
-}
-
 function setSelectedBaselines(selectedBaselineIds) {
     return {
         type: types.SET_SELECTED_BASELINES,
@@ -35,19 +28,6 @@ function clearSelectedBaselines() {
     };
 }
 
-function clearBaselineData() {
-    return {
-        type: types.CLEAR_BASELINE_DATA
-    };
-}
-
-function setIdDelete(baselineUUID) {
-    return {
-        type: types.SET_ID_DELETE,
-        payload: baselineUUID
-    };
-}
-
 function deleteSelectedBaselines(deleteBaselinesAPIBody) {
     return {
         type: types.DELETE_SELECTED_BASELINES,
@@ -58,10 +38,7 @@ function deleteSelectedBaselines(deleteBaselinesAPIBody) {
 export default {
     fetchBaselines,
     selectBaseline,
-    selectOneBaseline,
     setSelectedBaselines,
     clearSelectedBaselines,
-    clearBaselineData,
-    setIdDelete,
     deleteSelectedBaselines
 };

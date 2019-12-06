@@ -7,23 +7,11 @@ describe('compare reducer', () => {
     it('should return initial state', () => {
         expect(createBaselineModalReducer(undefined, {})).toEqual(
             {
-                createBaselineModalOpened: false,
                 baselineDataLoading: false,
                 baselineData: undefined,
                 error: {}
             }
         );
-    });
-
-    it('should handle TOGGLE_CREATE_BASELINE_MODAL', () => {
-        expect(createBaselineModalReducer({
-            createBaselineModalOpened: false
-        }, {
-            type: `${types.TOGGLE_CREATE_BASELINE_MODAL}`
-        })).toEqual({
-            createBaselineModalOpened: true,
-            error: {}
-        });
     });
 
     it('should handle CREATE_BASELINE_PENDING', () => {

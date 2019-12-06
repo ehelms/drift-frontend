@@ -1,7 +1,6 @@
 import types from './types';
 
 const initialState = {
-    createBaselineModalOpened: false,
     baselineDataLoading: false,
     baselineData: undefined,
     error: {}
@@ -12,12 +11,6 @@ export function createBaselineModalReducer(state = initialState, action) {
     let errorObject = {};
 
     switch (action.type) {
-        case `${types.TOGGLE_CREATE_BASELINE_MODAL}`:
-            return {
-                ...state,
-                createBaselineModalOpened: !state.createBaselineModalOpened,
-                error: {}
-            };
         case `${types.CREATE_BASELINE}_PENDING`:
             return {
                 ...state,

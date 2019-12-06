@@ -9,7 +9,8 @@ import {
     EmptyStateBody,
     Bullseye,
     EmptyState,
-    EmptyStateVariant
+    EmptyStateVariant,
+    Radio
 } from '@patternfly/react-core';
 
 import BaselineTableKebab from './BaselineTableKebab/BaselineTableKebab';
@@ -20,6 +21,10 @@ class BaselinesTable extends Component {
     constructor(props) {
         super(props);
         this.onSelect = this.onSelect.bind(this);
+        let newBaselineTableData = [ ...this.props.baselineTableData ];
+        newBaselineTableData.forEach(function(baseline) {
+            baseline.selected = false;
+        });
 
         this.state = {
             sortBy: {
@@ -28,7 +33,8 @@ class BaselinesTable extends Component {
             },
             search: undefined,
             orderBy: 'display_name',
-            orderHow: 'ASC'
+            orderHow: 'ASC',
+            cloneBaselineList: newBaselineTableData
         };
     }
 
@@ -38,12 +44,8 @@ class BaselinesTable extends Component {
         this.fetchBaselines();
     }
 
-    componentDidUpdate(prevProps) {
-        const { fetchBaselines } = this.props;
-
-        if (this.props.createBaselineModalOpened === false && prevProps.createBaselineModalOpened === true) {
-            fetchBaselines();
-        }
+    selectedBaselineIds = () => {
+        return this.props.selectedBaselineIds;
     }
 
     fetchBaselines = ({
@@ -85,19 +87,6 @@ class BaselinesTable extends Component {
         selectBaseline(ids, isSelected);
     }
 
-    onSingleSelect = (event, isSelected, rowId) => {
-        const { baselineTableData, selectOneBaseline } = this.props;
-        let id;
-
-        if (rowId === -1) {
-            id = '';
-        } else {
-            id = baselineTableData[rowId][0];
-        }
-
-        selectOneBaseline(id, isSelected);
-    }
-
     onSort = (_event, index, direction) => {
         let orderBy = '';
         let startIndex = this.props.hasSelect ? 1 : 0;
@@ -124,6 +113,7 @@ class BaselinesTable extends Component {
         let rows = [];
         let rowData = [];
 
+        rowData.push(<div className='checkbox-column'><Skeleton size={ SkeletonSize.lg } /></div>);
         for (let i = 0; i < 2; i += 1) {
             rowData.push(<div><Skeleton size={ SkeletonSize.md } /></div>);
         }
@@ -172,16 +162,60 @@ class BaselinesTable extends Component {
         return table;
     }
 
-    createModalRows() {
-        const { baselineTableData } = this.props;
+    onSingleSelect = (_, event) => {
+        const { isBaselineSelected } = this.props;
+        const { cloneBaselineList } = this.state;
+
+        let id = event.currentTarget.id;
+        let newCloneBaselineList = [ ...cloneBaselineList ];
+
+        if (id !== '') {
+            newCloneBaselineList.map(row => {
+                if (id.includes(row[0])) {
+                    row.selected = !row.selected;
+                    isBaselineSelected(row[0]);
+                } else {
+                    row.selected = false;
+                }
+            });
+        }
+
+        this.setState({ cloneBaselineList: newCloneBaselineList });
+    }
+
+    renderRadioButton = (data) => {
+        return (
+            <React.Fragment>
+                <Radio
+                    aria-label={ 'radio' + data[1] }
+                    isChecked={ data.selected }
+                    onChange={ this.onSingleSelect }
+                    name={ data[1] }
+                    id={ data[0] }
+                />
+            </React.Fragment>
+        );
+    }
+
+    createModalRows(modalData) {
         let modalRows = [];
+        let baselineData = modalData.baselineData;
+        let isRadio = modalData.isRadio;
 
-        for (let i = 0; i < baselineTableData.length; i++) {
-            modalRows.push([ baselineTableData[i][1], baselineTableData[i][2] ]);
+        for (let i = 0; i < baselineData.length; i++) {
+            let modalRow = [];
 
-            if (baselineTableData[i].selected) {
-                modalRows[i].selected = true;
+            isRadio
+                ? modalRow.push(<td className='pf-c-table__check'>{ this.renderRadioButton(baselineData[i]) }</td>)
+                : null;
+            modalRow.push(baselineData[i][1]);
+            modalRow.push(baselineData[i][2]);
+
+            if (baselineData[i].selected) {
+                modalRow.selected = true;
             }
+
+            modalRows.push(modalRow);
         }
 
         return modalRows;
@@ -189,8 +223,13 @@ class BaselinesTable extends Component {
 
     renderTable() {
         const { baselineTableData, baselineListLoading, baselineDeleteLoading,
-            createBaselineModalOpened, addSystemModalOpened, hasSelect } = this.props;
+            isModal, addSystemModalOpened, hasSelect } = this.props;
         let columns = [
+            { title: 'Name', transforms: [ sortable ]},
+            { title: 'Last updated', transforms: [ sortable ]}
+        ];
+        let radioColumns = [
+            { title: '' },
             { title: 'Name', transforms: [ sortable ]},
             { title: 'Last updated', transforms: [ sortable ]}
         ];
@@ -200,7 +239,10 @@ class BaselinesTable extends Component {
 
         if (!baselineListLoading && !baselineDeleteLoading) {
             if (addSystemModalOpened) {
-                modalRows = this.createModalRows();
+                modalRows = this.createModalRows({
+                    baselineData: baselineTableData,
+                    isRadio: false
+                });
 
                 table = <Table
                     aria-label="Baselines Table"
@@ -214,13 +256,15 @@ class BaselinesTable extends Component {
                     <TableHeader />
                     <TableBody />
                 </Table>;
-            } else if (createBaselineModalOpened) {
-                modalRows = this.createModalRows();
+            } else if (isModal) {
+                modalRows = this.createModalRows({
+                    baselineData: this.state.cloneBaselineList,
+                    isRadio: true
+                });
 
                 table = <Table
                     aria-label="Baselines Table"
-                    onSelect={ hasSelect ? this.onSingleSelect : false }
-                    cells={ columns }
+                    cells={ radioColumns }
                     rows={ modalRows }
                 >
                     <TableHeader />
@@ -277,8 +321,7 @@ class BaselinesTable extends Component {
 
             table = <Table
                 aria-label="Baselines Table"
-                onSelect={ hasSelect ? true : false }
-                cells={ columns }
+                cells={ radioColumns }
                 rows={ loadingRows }
             >
                 <TableHeader />
@@ -290,7 +333,7 @@ class BaselinesTable extends Component {
     }
 
     render() {
-        const { kebab, createButton, exportButton } = this.props;
+        const { kebab, createButton, exportButton, toggleModal } = this.props;
 
         return (
             <React.Fragment>
@@ -299,6 +342,7 @@ class BaselinesTable extends Component {
                     exportButton={ exportButton }
                     kebab={ kebab }
                     onSearch={ this.onSearch }
+                    toggleModal={ toggleModal }
                 />
                 { this.renderTable() }
             </React.Fragment>
@@ -312,17 +356,18 @@ BaselinesTable.propTypes = {
     baselineTableData: PropTypes.array,
     createBaselinesTable: PropTypes.func,
     selectBaseline: PropTypes.func,
-    selectOneBaseline: PropTypes.func,
     addSystemModalOpened: PropTypes.bool,
     fetchBaselines: PropTypes.func,
     history: PropTypes.object,
     kebab: PropTypes.bool,
     createButton: PropTypes.bool,
     exportButton: PropTypes.bool,
-    createBaselineModalOpened: PropTypes.bool,
+    isModal: PropTypes.bool,
     hasSelect: PropTypes.bool,
     hasSingleSelect: PropTypes.bool,
-    clearSelectedBaselines: PropTypes.func
+    toggleModal: PropTypes.func,
+    isBaselineSelected: PropTypes.func,
+    selectedBaselineIds: PropTypes.func
 };
 
 function mapStateToProps(state) {
@@ -330,17 +375,14 @@ function mapStateToProps(state) {
         baselineDeleteLoading: state.baselinesTableState.baselineDeleteLoading,
         baselineListLoading: state.baselinesTableState.baselineListLoading,
         baselineTableData: state.baselinesTableState.baselineTableData,
-        addSystemModalOpened: state.addSystemModalState.addSystemModalOpened,
-        createBaselineModalOpened: state.createBaselineModalState.createBaselineModalOpened
+        addSystemModalOpened: state.addSystemModalState.addSystemModalOpened
     };
 }
 
 function mapDispatchToProps(dispatch) {
     return {
         selectBaseline: (id, isSelected) => dispatch(baselinesTableActions.selectBaseline(id, isSelected)),
-        selectOneBaseline: (id, isSelected) => dispatch(baselinesTableActions.selectOneBaseline(id, isSelected)),
-        fetchBaselines: (params) => dispatch(baselinesTableActions.fetchBaselines(params)),
-        clearSelectedBaselines: () => dispatch(baselinesTableActions.clearSelectedBaselines())
+        fetchBaselines: (params) => dispatch(baselinesTableActions.fetchBaselines(params))
     };
 }
 
